@@ -25,10 +25,12 @@ const Keys = {
 	POW: { kind: "POWER", value: "" }
 };
 
-class Calculator {
+class Calculator 
+{
 	static Keys;
-	static #operations; // Arithmetic ops
-	static Initialize() {
+	static #operations; // Arithmetic operations
+	static Initialize() 
+	{
 		Calculator.Keys = Keys;
 		Calculator.#operations = new Map();
 		Calculator.#operations.set(Calculator.Keys.ADD, (op1, op2) => op1 + op2);
@@ -36,103 +38,107 @@ class Calculator {
 		Calculator.#operations.set(Calculator.Keys.MUL, (op1, op2) => op1 * op2);
 		Calculator.#operations.set(Calculator.Keys.DIV, (op1, op2) => op1 / op2);
 	}
+
 	#next;
-	constructor() { 
+	
+	constructor() 
+	{ 
 		this.#Reset(); 
+		this.#next = -1; // Initially not running
+	}
 
-		// Initially off
-		this.#next = -1;	
-	 }
-
-	// Resets the operations state
-	#Reset() {
+	// Resets the state while running
+	#Reset() 
+	{
 		this.operands = [Calculator.Keys.ZERO.value, Calculator.Keys.DEL.value];
 		this.operation = Calculator.Keys.DEL;
 	}
 
-	#BuildOperand(key, current) {
-
+	#BuildOperand(key, current) 
+	{
 		if (key.kind == "DIGIT") {
-			if (this.operands[current] == Calculator.Keys.ZERO.value || this.operands[current] == Calculator.Keys.DEL.value) {
+			if (this.operands[current] == Calculator.Keys.ZERO.value || this.operands[current] == Calculator.Keys.DEL.value) 
 				this.operands[current] = "";
-			}
+
 			this.operands[current] += key.value;
 		}
 
+		// Decimal digit separator
 		if (key.kind == "DOT" && !this.operands[current].includes(Calculator.Keys.DOT.value)) {
-			if (this.operands[current] == Calculator.Keys.DEL.value) {
+			if (this.operands[current] == Calculator.Keys.DEL.value) 
 				this.operands[current] = Calculator.Keys.ZERO.value;
-			}
+
 			this.operands[current] += key.value;
-		};
+		}
 
+		// Sign toggle
 		if (key.kind == "SIGN" && !isNaN(this.operands[current]) && Number(this.operands[current]) != 0) {
-			if (this.operands[current].startsWith(key.value)) {
+			if (this.operands[current].startsWith(key.value)) 
 				this.operands[current] = this.operands[current].slice(1);
-			}
-			else {
+			else 
 				this.operands[current] = key.value + this.operands[current];
-			}
 		}
 	}
 
-	// Helper methods
-	#InsertOperand(key, current) {
+	#InsertOperand(key, current) 
+	{
 		this.operands[current] = key.value;
-		if (key.kind == "DOT") {
+		if (key.kind == "DOT") 
 			this.operands[current] = Calculator.Keys.ZERO.value + this.operands[current];
-		}
 	}
 
-	#Eval() {
+	#Eval() 
+	{
 		this.operands[0] = (Calculator.#operations.get(this.operation))(parseFloat(this.operands[0]), parseFloat(this.operands[1]));
 		this.operands[0] = "" + this.operands[0];
 	}
 
 	// Simulates external random digit (0 - 9) key press selection 
-	#EnterRandomDigit() {
+	#EnterRandomDigit() 
+	{
 		this.Enter(Keys[Object.keys(Keys)[Math.floor(Math.random() * 10)]]);
 	}
 
-	// Key Press
-	Enter(key) {
+	// State Actions
+	Enter(key) 
+	{
 		switch (this.#next) {
-			case -1: // Power is Off
+			case -1:	// Power is Off
 				if (key.kind == "POWER") { this.#Reset(); this.#next = 0; }
 				break;
-			case 0:	// 1st operand 
-				if (key.kind == "RESET" || key.kind == "POWER") { this.#Reset(); }
+			case 0:		// 1st operand 
+				if (key.kind == "RESET" || key.kind == "POWER") { this.#Reset(); } 
 				if (key.kind == "DIGIT" || key.kind == "DOT" || key.kind == "SIGN") { this.#BuildOperand(key, 0); }
-				if (key.kind == "RANDOM") { this.#EnterRandomDigit(); }
-				if (key.kind == "OPERATION") { this.operation = key; this.#next = 1; }
-				if (key.kind == "CLEAR") { this.operands[0] = Calculator.Keys.ZERO.value; };
-				if (key.kind == "POWER") { this.#next = -1; }
+				if (key.kind == "RANDOM") { this.#EnterRandomDigit(); } 
+				if (key.kind == "OPERATION") { this.operation = key; this.#next = 1; } 
+				if (key.kind == "CLEAR") { this.operands[0] = Calculator.Keys.ZERO.value; } 
+				if (key.kind == "POWER") { this.#next = -1; } 
 				break;
-			case 1:	// Operation
+			case 1:		// Operation
 				if (key.kind == "RESET") { this.#Reset(); this.#next = 0; }
 				if (key.kind == "DIGIT" || key.kind == "DOT") { this.#InsertOperand(key, 1); this.#next = 2; }
 				if (key.kind == "RANDOM") { this.#EnterRandomDigit(); }
 				if (key.kind == "OPERATION") { this.operation = key; }
-				if (key.kind == "CLEAR") { this.operands[1] = Calculator.Keys.ZERO.value; };
+				if (key.kind == "CLEAR") { this.operands[1] = Calculator.Keys.ZERO.value; }
 				if (key.kind == "POWER") { this.#next = -1; }
 				break;
-			case 2:	// Last operand
+			case 2:		// Last operand
 				if (key.kind == "RESET") { this.#Reset(); this.#next = 0; }
 				if (key.kind == "DIGIT" || key.kind == "DOT" || key.kind == "SIGN") { this.#BuildOperand(key, 1); }
 				if (key.kind == "RANDOM") { this.#EnterRandomDigit(); }
 				if (key.kind == "OPERATION") { this.#Eval(); this.operation = key; this.#next = 3; }
-				if (key.kind == "EVAL") { this.#Eval(key); this.#next = 3; }
+				if (key.kind == "EVAL") { this.#Eval(); this.#next = 3; }
 				if (key.kind == "CLEAR") { this.operands[1] = Calculator.Keys.ZERO.value; }
 				if (key.kind == "SWAP") { this.operands = [this.operands[1], this.operands[0]]; this.#next = 3; }
 				if (key.kind == "POWER") { this.#next = -1; }
 				break;
-			case 3:	// Evaluation
+			case 3:		// Evaluation
 				if (key.kind == "RESET") { this.#Reset(); this.#next = 0; }
 				if (key.kind == "DIGIT" || key.kind == "DOT") { this.#InsertOperand(key, 1); this.#next = 2; }
 				if (key.kind == "RANDOM") { this.#EnterRandomDigit(); }
 				if (key.kind == "OPERATION") { this.operation = key; }
 				if (key.kind == "EVAL") { this.#Eval(); }
-				if (key.kind == "CLEAR") { this.operands[1] = Calculator.Keys.ZERO.value; this.#next = 2; };
+				if (key.kind == "CLEAR") { this.operands[1] = Calculator.Keys.ZERO.value; this.#next = 2; }
 				if (key.kind == "SWAP") { this.operands = [this.operands[1], this.operands[0]]; }
 				if (key.kind == "POWER") { this.#next = -1; }
 				break;

@@ -35,10 +35,10 @@ const btnHandler = function (event) {
 	let presult = calculator.Enter(kmap.get(event.target.id));
 
 	// Content
-	if (presult[3] < 0) { // Power is off => Ignore outputs (garbage/undefined) and blank the screens
+	if (presult[3] < 0) { // Power is off => Ignore other outputs (garbage/undefined) and blank the screens
 		scr0.innerText = scr1.innerText = "";
 	}
-	else { // Power is on. Update screens accordingly.
+	else { // Power is on => Update screens accordingly
 		scr0.innerText = presult[3] == 0 ? presult[0] : presult[1];
 		scr1.innerText = (presult[2] == "?" ? presult[2] : parseFloat(presult[3] == 0 ? presult[1] : presult[0])) + " " + presult[2]
 	}
